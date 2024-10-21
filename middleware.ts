@@ -2,6 +2,10 @@ import { type NextRequest } from 'next/server';
 import { updateSession } from '@/utils/supabase/middleware';
 
 export async function middleware(request: NextRequest) {
+  // Nie aktualizuj sesji dla żądań do API generowania obrazów
+  if (request.nextUrl.pathname.startsWith('/api/predictions')) {
+    return;
+  }
   return await updateSession(request);
 }
 
