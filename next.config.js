@@ -3,11 +3,11 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "replicate.com",
+        hostname: "fal.ai",
       },
       {
         protocol: "https",
-        hostname: "replicate.delivery",
+        hostname: "fal.media",
       },
     ],
   },

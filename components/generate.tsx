@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Image from "next/image";
 
 interface GenerateProps {
@@ -8,61 +8,14 @@ interface GenerateProps {
 }
 
 export default function Generate({ modelId }: GenerateProps) {
-  const [prediction, setPrediction] = useState<any>(null);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [predictionId, setPredictionId] = useState<string | null>(null);
-
-  const checkPredictionStatus = async () => {
-    if (!predictionId) return null;
-    try {
-      const response = await fetch("/api/predictions/" + predictionId);
-      const predictionData = await response.json();
-
-      if (response.status !== 200) {
-        setError(predictionData.detail);
-        setIsLoading(false);
-        return null;
-      }
-
-      return predictionData;
-    } catch (err) {
-      setError("Wystąpił błąd podczas sprawdzania statusu predykcji.");
-      setIsLoading(false);
-      return null;
-    }
-  };
-
-  useEffect(() => {
-    if (!predictionId) return;
-
-    const pollPredictionStatus = async () => {
-      const predictionData = await checkPredictionStatus();
-      if (!predictionData) return;
-
-      if (predictionData.status === "succeeded") {
-        setPrediction(predictionData);
-        setIsLoading(false);
-      } else if (predictionData.status === "failed") {
-        setError("Wystąpił błąd podczas generowania obrazu.");
-        setIsLoading(false);
-      } else {
-        // Jeśli status nie jest "succeeded" ani "failed", czekamy 2 sekundy i sprawdzamy ponownie
-        setTimeout(pollPredictionStatus, 10000);
-      }
-    };
-
-    pollPredictionStatus();
-
-    return () => {
-      // Nie ma potrzeby anulowania, ponieważ setTimeout zostanie automatycznie wyczyszczony
-    };
-  }, [predictionId]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
-    setPrediction(null);
+    setImageUrl(null);
     setIsLoading(true);
 
     const prompt = (e.currentTarget.elements.namedItem('prompt') as HTMLInputElement).value;
@@ -80,9 +33,8 @@ export default function Generate({ modelId }: GenerateProps) {
       });
 
       if (response.ok) {
-        const imageBlob = await response.blob();
-        const imageUrl = URL.createObjectURL(imageBlob);
-        setPrediction({ output: [imageUrl] });
+        const data = await response.json();
+        setImageUrl(data.images[0].url);
       } else {
         const errorData = await response.json();
         setError(errorData.detail || "Wystąpił błąd podczas generowania obrazu.");
@@ -103,7 +55,7 @@ export default function Generate({ modelId }: GenerateProps) {
       <form className="w-full flex mb-6" onSubmit={handleSubmit}>
         <input
           type="text"
-          className="flex-grow px-4 py-2 rounded-l-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex-grow px-4 py-2 rounded-l-lg border border-gray-300 text-black focus:outline-none focus:ring-2 focus:ring-blue-500"
           name="prompt"
           placeholder="Wpisz prompt, aby wygenerować obraz"
         />
@@ -119,10 +71,10 @@ export default function Generate({ modelId }: GenerateProps) {
 
       {isLoading && <div className="text-white">Generowanie obrazu...</div>}
 
-      {prediction && prediction.output && (
+      {imageUrl && (
         <div className="image-wrapper mt-5 rounded-lg overflow-hidden shadow-lg">
           <Image
-            src={prediction.output[prediction.output.length - 1]}
+            src={imageUrl}
             alt="wygenerowany obraz"
             sizes="100vw"
             height={768}

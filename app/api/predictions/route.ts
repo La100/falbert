@@ -1,18 +1,14 @@
 import { NextResponse } from "next/server";
-import Replicate from "replicate";
+import { fal } from "@fal-ai/client";
 import { models } from '@/utils/models';
 
-const replicate = new Replicate({
-  auth: process.env.REPLICATE_API_TOKEN,
-});
+if (!process.env.FAL_KEY) {
+  throw new Error(
+    'Zmienna środowiskowa FAL_KEY nie jest ustawiona. Sprawdź plik README.md, aby uzyskać instrukcje, jak ją ustawić.'
+  );
+}
 
 export async function POST(request: Request) {
-  if (!process.env.REPLICATE_API_TOKEN) {
-    throw new Error(
-      'The REPLICATE_API_TOKEN environment variable is not set. See README.md for instructions on how to set it.'
-    );
-  }
-
   const { prompt, model }: { prompt: string; model: string } = await request.json();
 
   if (!model || typeof model !== 'string') {
@@ -30,13 +26,20 @@ export async function POST(request: Request) {
     );
   }
 
+  fal.config({
+    credentials: process.env.FAL_KEY!,
+  });
+
   try {
-    const prediction = await replicate.predictions.create({
-      version: selectedModel.replicateId,
-      input: { prompt }
+    const result = await fal.subscribe(selectedModel.falId, {
+      input: {
+        prompt,
+      },
     });
 
-    return NextResponse.json(prediction);
+    const images = result.data.images;
+
+    return NextResponse.json({ images });
   } catch (error: any) {
     return NextResponse.json({ detail: error.message }, { status: 500 });
   }

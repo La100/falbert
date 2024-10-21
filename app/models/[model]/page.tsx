@@ -1,7 +1,9 @@
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import Generate from '@/components/generate';
 import { models, Model } from '@/utils/models';
 import { Metadata } from 'next';
+import { createClient } from '@/utils/supabase/server';
+import { getUser } from '@/utils/supabase/queries';
 
 interface Params {
   params: {
@@ -24,7 +26,14 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   };
 }
 
-export default function ModelPage({ params }: Params) {
+export default async function ModelPage({ params }: Params) {
+  const supabase = createClient();
+  const user = await getUser(supabase);
+
+  if (!user) {
+    return redirect('/signin');
+  }
+
   const model: Model | undefined = models.find((m) => m.id === params.model);
 
   if (!model) {
