@@ -1,9 +1,9 @@
-import { notFound, redirect } from 'next/navigation';
 import Generate from '@/components/generate';
-import { models, Model } from '@/utils/models';
+import { models as staticModels } from '@/utils/models';
 import { Metadata } from 'next';
-import { createClient } from '@/utils/supabase/server';
-import { getUser } from '@/utils/supabase/queries';
+import { getModelByUrlId } from '@/utils/supabase-server';
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
 
 interface Params {
   params: {
@@ -12,40 +12,77 @@ interface Params {
 }
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
-  const model = models.find((m) => m.id === params.model);
-  if (!model) {
+  try {
+    // Sprawdź najpierw modele statyczne
+    const staticModel = staticModels.find((m) => m.id === params.model);
+    if (staticModel) {
+      return {
+        title: `Generowanie z ${staticModel.name}`,
+        description: staticModel.description,
+      };
+    }
+
+    // Jeśli nie znaleziono statycznego modelu, sprawdź w bazie danych
+    const model = await getModelByUrlId(params.model);
+    if (model) {
+      return {
+        title: `Generowanie z ${model.name}`,
+        description: `Model użytkownika: ${model.name}`,
+      };
+    }
+
     return {
       title: 'Model nie znaleziony',
       description: 'Wybrany model nie istnieje.',
     };
+  } catch (error) {
+    console.error('Błąd podczas pobierania metadanych:', error);
+    return {
+      title: 'Błąd',
+      description: 'Wystąpił błąd podczas ładowania modelu',
+    };
   }
-
-  return {
-    title: `Generowanie z ${model.name}`,
-    description: model.description,
-  };
 }
 
-export default async function ModelPage({ params }: Params) {
-  const supabase = createClient();
-  const user = await getUser(supabase);
+export default async function ModelPage({ params }: { params: { model: string } }) {
+  try {
+    // Inicjalizacja klienta Supabase
+    const supabase = createServerComponentClient({ cookies });
+    
+    // Sprawdź najpierw modele statyczne
+    const staticModel = staticModels.find((m) => m.id === params.model);
+    if (staticModel) {
+      return (
+        <div>
+          <h1 className='text-2xl font-bold text-center pt-8'>{staticModel.name}</h1>
+          <p className='text-center'>{staticModel.description}</p>
+          <Generate 
+            modelId={staticModel.id} 
+            supportsFileUpload={staticModel.supportsFileUpload ?? false} 
+          />
+        </div>
+      );
+    }
 
-  if (!user) {
-    return redirect('/signin');
+    // Jeśli nie znaleziono statycznego modelu, sprawdź w bazie danych
+    const model = await getModelByUrlId(params.model);
+    if (!model) {
+      return <div className="text-center p-8">Model nie znaleziony</div>;
+    }
+
+    return (
+      <div>
+        <h1 className='text-2xl font-bold text-center pt-8'>{model.name}</h1>
+        <p className='text-center'>Model użytkownika</p>
+        <Generate 
+          modelId={model.fal_id} 
+          supportsFileUpload={model.supports_file_upload} 
+          loraPath={model.lora_path}
+        />
+      </div>
+    );
+  } catch (error) {
+    console.error('Błąd podczas ładowania modelu:', error);
+    return <div className="text-center p-8">Wystąpił błąd podczas ładowania modelu</div>;
   }
-
-  const model: Model | undefined = models.find((m) => m.id === params.model);
-
-  if (!model) {
-    notFound();
-  }
-
-  return (
-    <div className="container max-w-2xl mx-auto p-5">
-      <h1 className="py-8 text-center font-bold text-3xl text-white">
-        Generuj obrazy z {model.name}
-      </h1>
-      <Generate modelId={model.id} />
-    </div>
-  );
 }

@@ -141,5 +141,70 @@ create policy "Can only view own subs data." on subscriptions for select using (
  * REALTIME SUBSCRIPTIONS
  * Only allow realtime listening on public tables.
  */
+ /**
+* USER_MODELS
+* Note: This table contains user's custom AI models. Users should only be able to view and manage their own models.
+*/
+create table user_models (
+  -- UUID primary key
+  id uuid default uuid_generate_v4() primary key,
+  -- Reference to the user who owns this model
+  user_id uuid references auth.users not null,
+  -- Friendly URL identifier
+  url_id text not null,
+  -- Model name
+  name text not null,
+  -- Model description
+  fal_id text not null,
+  -- Whether the model supports file upload
+  supports_file_upload boolean default false,
+  -- Whether this is a custom trained model
+  is_custom boolean default true,
+  -- Path to the LORA weights if applicable
+  lora_path text,
+  -- Trigger word for the model
+  trigger_word text,
+  -- When the model was created
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  -- When the model was last updated
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  -- Ensure url_id is unique per user
+  unique(user_id, url_id)
+);
+
+-- Enable RLS
+alter table user_models enable row level security;
+
+-- Create policies
+create policy "Users can view their own models." 
+  on user_models for select 
+  using (auth.uid() = user_id);
+
+create policy "Users can insert their own models." 
+  on user_models for insert 
+  with check (auth.uid() = user_id);
+
+create policy "Users can update their own models." 
+  on user_models for update 
+  using (auth.uid() = user_id);
+
+create policy "Users can delete their own models." 
+  on user_models for delete 
+  using (auth.uid() = user_id);
+
+-- Create an automatically updated timestamp function
+create or replace function update_updated_at_column()
+returns trigger as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$ language plpgsql;
+
+-- Create a trigger to automatically update the updated_at column
+create trigger update_user_models_updated_at
+  before update on user_models
+  for each row
+  execute function update_updated_at_column();
 drop publication if exists supabase_realtime;
 create publication supabase_realtime for table products, prices;
