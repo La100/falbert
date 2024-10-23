@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { fal } from "@fal-ai/client";
-import { models } from '@/utils/models';
+import { models, Model } from '@/utils/models';
 
 if (!process.env.FAL_KEY) {
   throw new Error(

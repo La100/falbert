@@ -42,12 +42,8 @@ export async function POST(req: NextRequest) {
     console.log('Przygotowanie do przesłania pliku ZIP');
     const fileBuffer = await zipFile.arrayBuffer();
     console.log('Plik ZIP odczytany, rozmiar:', fileBuffer.byteLength);
-
     console.log('Przesyłanie pliku do fal.ai');
-    const uploadedFile = await fal.storage.upload(new Uint8Array(fileBuffer), {
-      contentType: 'application/zip',
-      mimeType: 'application/zip'
-    });
+    const uploadedFile = await fal.storage.upload(new Blob([new Uint8Array(fileBuffer)], { type: 'application/zip' }));
 
     // Ustaw trigger_word w zależności od typu
     const trigger_word = selectedType === 'Styl' ? modelName.toLowerCase() : modelName.split(' ')[0].toLowerCase();

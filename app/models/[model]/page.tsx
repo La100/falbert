@@ -59,7 +59,7 @@ export default async function ModelPage({ params }: { params: { model: string } 
           <Generate 
             modelId={staticModel.id} 
             supportsFileUpload={staticModel.supportsFileUpload ?? false} 
-            triggerWord={staticModel.triggerWord}
+            trigger_word={staticModel.triggerWord}
           />
         </div>
       );
