@@ -8,9 +8,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-export const config = {
-  runtime: 'nodejs',
-};
+export const runtime= "nodejs"
 
 export async function POST(req: NextRequest) {
   console.log('Otrzymano żądanie POST');

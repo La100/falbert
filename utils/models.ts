@@ -7,6 +7,7 @@ export interface Model {
   supportsFileUpload?: boolean; // Nowe pole
   isCustom?: boolean;
   loraPath?: string;
+  triggerWord?: string; // Dodajemy nowe pole
 }
 
 export const models: Model[] = [
@@ -16,6 +17,7 @@ export const models: Model[] = [
     name: 'Flux Dev',
     description: 'Eksperymentalny model generujący obrazy.',
     image: '/images/models/flux-dev.jpg',
+ 
   },
   {
     id: 'stable-diffusion-v35-large',

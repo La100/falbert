@@ -59,6 +59,7 @@ export default async function ModelPage({ params }: { params: { model: string } 
           <Generate 
             modelId={staticModel.id} 
             supportsFileUpload={staticModel.supportsFileUpload ?? false} 
+            triggerWord={staticModel.triggerWord}
           />
         </div>
       );
@@ -78,6 +79,7 @@ export default async function ModelPage({ params }: { params: { model: string } 
           modelId={model.fal_id} 
           supportsFileUpload={model.supports_file_upload} 
           loraPath={model.lora_path}
+          trigger_word={model.trigger_word} // Zmiana z triggerWord na trigger_word
         />
       </div>
     );

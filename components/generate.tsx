@@ -8,9 +8,10 @@ interface GenerateProps {
   modelId: string;
   supportsFileUpload: boolean;
   loraPath?: string; // Dodaj opcjonalny prop loraPath
+  trigger_word?: string; // Zmiana z triggerWord na trigger_word
 }
 
-export default function Generate({ modelId, supportsFileUpload, loraPath }: GenerateProps) {
+export default function Generate({ modelId, supportsFileUpload, loraPath, trigger_word }: GenerateProps) {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -89,6 +90,11 @@ export default function Generate({ modelId, supportsFileUpload, loraPath }: Gene
           name="prompt"
           placeholder="Wpisz prompt, aby wygenerować obraz"
         />
+        {trigger_word && (
+          <div className="text-white text-sm mb-2">
+            Użyj słowa kluczowego "{trigger_word}" w swoim prompcie
+          </div>
+        )}
         {supportsFileUpload && (
           <input
             type="file"
