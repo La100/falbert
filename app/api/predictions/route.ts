@@ -1,6 +1,14 @@
 import { NextResponse } from "next/server";
 import { fal } from "@fal-ai/client";
 import { models, Model } from '@/utils/models';
+import { createClient } from '@supabase/supabase-js';
+import { Database } from '@/types/supabase';
+
+// Inicjalizacja klienta Supabase
+const supabase = createClient<Database>(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 if (!process.env.FAL_KEY) {
   throw new Error(
@@ -9,7 +17,7 @@ if (!process.env.FAL_KEY) {
 }
 
 export async function POST(request: Request) {
-  const { prompt, model, fileUrl }: { prompt: string; model: string; fileUrl?: string } = await request.json();
+  const { prompt, model, loraPath, isCustom, imageSize, numImages = 1 } = await request.json();
 
   if (!model || typeof model !== 'string') {
     return NextResponse.json(
@@ -18,7 +26,40 @@ export async function POST(request: Request) {
     );
   }
 
-  const selectedModel = models.find((m) => m.id === model);
+  // Najpierw sprawdź statyczne modele
+  let selectedModel = models.find((m) => m.id === model);
+
+  // Jeśli nie znaleziono w statycznych, sprawdź w bazie danych
+  if (!selectedModel && isCustom) {
+    const { data: userModel, error } = await supabase
+      .from('user_models')
+      .select('*')
+      .eq('url_id', model)
+      .single();
+
+    if (error) {
+      console.error('Błąd Supabase:', error);
+      return NextResponse.json(
+        { detail: "Błąd podczas wyszukiwania modelu." },
+        { status: 500 }
+      );
+    }
+
+    if (userModel) {
+      selectedModel = {
+        id: userModel.url_id,
+        name: userModel.name,
+        description: 'Model użytkownika',
+        falId: 'fal-ai/flux-lora',
+        image: '/images/models/custom-model.jpg',
+        isCustom: true,
+        loraPath: userModel.lora_path,
+        triggerWord: userModel.trigger_word
+        
+      };
+    }
+  }
+
   if (!selectedModel) {
     return NextResponse.json(
       { detail: "Wybrany model nie istnieje." },
@@ -33,42 +74,44 @@ export async function POST(request: Request) {
   try {
     let result;
     if (selectedModel.isCustom) {
-      result = await generateWithCustomModel(selectedModel, prompt);
+      console.log('Generowanie z modelem niestandardowym:', {
+        loraPath: selectedModel.loraPath,
+        prompt,
+        imageSize,
+        numImages
+      });
+
+      result = await fal.subscribe("fal-ai/flux-lora", {
+        input: {
+          prompt,
+          lora_url: selectedModel.loraPath,
+          num_images: numImages,
+          safety_checker: false,
+          image_size: imageSize, // Zmienione na bezpośrednie przekazanie wartości
+          loras: [{
+            path: selectedModel.loraPath,
+            scale: 1
+          }]
+        },
+      });
     } else {
       result = await fal.subscribe(selectedModel.falId, {
         input: {
           prompt,
-          image: fileUrl,
+          num_images: numImages,
+          image_size: imageSize, // Zmienione na bezpośrednie przekazanie wartości
         },
       });
     }
-
-    const images = result.images;
-
+    const images = result.data.images;
     return NextResponse.json({ images });
   } catch (error: any) {
+    console.error('Szczegóły błędu:', {
+      message: error.message,
+      status: error.status,
+      body: error.body
+    });
     return NextResponse.json({ detail: error.message }, { status: 500 });
   }
 }
 
-async function generateWithCustomModel(selectedModel: Model, prompt: string) {
-  const result = await fal.subscribe(selectedModel.falId, {
-    input: {
-      prompt: prompt,
-      model_name: null,
-      loras: [{
-        path: selectedModel.loraPath,
-        scale: 1
-      }],
-      embeddings: []
-    },
-    logs: true,
-    onQueueUpdate: (update) => {
-      if (update.status === "IN_PROGRESS") {
-        update.logs.map((log) => log.message).forEach(console.log);
-      }
-    },
-  });
-
-  return result.data;
-}

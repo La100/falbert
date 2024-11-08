@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
         images_data_url: uploadedFile,
         create_masks: true,
         iter_multiplier: 1,
-        steps: 1,
+        steps: 1000,
         trigger_word: trigger_word,
         data_archive_format: "zip",
         is_style: selectedType === 'Styl' // true dla typu 'Styl', false dla innych
@@ -69,12 +69,18 @@ export async function POST(req: NextRequest) {
 
     console.log('Odpowiedź z fal.ai:', result.data);
 
+    // Sprawdź czy mamy poprawną ścieżkę lora
+    const loraPath = result.data.diffusers_lora_file?.url;
+    if (!loraPath) {
+      throw new Error('Nie otrzymano poprawnej ścieżki lora z fal.ai');
+    }
+
     // Pobierz ID zalogowanego użytkownika z nagłówka autoryzacji
     const authHeader = req.headers.get('authorization');
     if (!authHeader) {
       throw new Error('Brak autoryzacji');
     }
-    const token = authHeader.replace('Bearer ', '');
+    const token = authHeader.replace('Bearer ', ');
     
     // Pobierz dane użytkownika
     const { data: { user }, error: userError } = await supabase.auth.getUser(token);
@@ -83,9 +89,23 @@ export async function POST(req: NextRequest) {
     }
 
     // Generuj przyjazny URL ID
-    const urlId = modelName.toLowerCase().replace(/\s+/g, '-');
+    let urlId = modelName.toLowerCase()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9-]/g, '');
 
-    // Zapisz model w bazie danych
+    // Sprawdź czy model o takim url_id już istnieje
+    const { data: existingModel } = await supabase
+      .from('user_models')
+      .select('url_id')
+      .eq('url_id', urlId)
+      .single();
+
+    if (existingModel) {
+      const timestamp = Date.now();
+      urlId = `${urlId}-${timestamp}`;
+    }
+
+    // Zapisz model w bazie danych z poprawną ścieżką lora
     const { data: modelData, error: modelError } = await supabase
       .from('user_models')
       .insert([
@@ -93,11 +113,11 @@ export async function POST(req: NextRequest) {
           user_id: user.id,
           url_id: urlId,
           name: modelName,
-          fal_id: 'fal-ai/flux-lora-fast-training', // Stała wartość dla wszystkich modeli trenowanych
+          fal_id: 'fal-ai/flux-lora-fast-training',
           supports_file_upload: false,
           is_custom: true,
-          lora_path: result.data.lora_path,
-          trigger_word: trigger_word  // Zapisujemy pierwsze słowo
+          lora_path: loraPath, // Używamy poprawnej ścieżki
+          trigger_word: trigger_word
         }
       ])
       .select();

@@ -1,0 +1,27 @@
+:root {
+  /* Kolory podstawowe */
+  --color-primary: #3b82f6;
+  --color-primary-foreground: #ffffff;
+  --color-primary-hover: #2563eb;
+  
+  /* Kolory drugorzędne */
+  --color-secondary: #1f2937;
+  --color-secondary-foreground: #f3f4f6;
+  --color-secondary-hover: #111827;
+  
+  /* Tło */
+  --color-background: #000000;
+  --color-background-foreground: #ffffff;
+  
+  /* Obramowania */
+  --color-border: #374151;
+  --color-border-hover: #4b5563;
+  
+  /* Akcenty */
+  --color-accent: #8b5cf6;
+  --color-accent-foreground: #ffffff;
+}
+
+[data-theme="dark"] {
+  /* Możesz dostosować kolory dla trybu ciemnego jeśli potrzebujesz */
+}
