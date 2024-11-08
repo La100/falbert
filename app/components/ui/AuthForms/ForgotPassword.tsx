@@ -1,6 +1,6 @@
 'use client';
 
-import Button from '@/app/components/ui/button2';
+import Button from '@/app/components/ui/Button';
 import Link from 'next/link';
 import { requestPasswordUpdate } from '@/utils/auth-helpers/server';
 import { handleRequest } from '@/utils/auth-helpers/client';

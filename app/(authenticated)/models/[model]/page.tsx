@@ -24,7 +24,7 @@ export default async function ModelPage({ params }: { params: { model: string } 
           <p className='text-center'>{staticModel.description}</p>
           <Generate
             modelId={staticModel.id} 
-            trigger_word={staticModel.triggerWord}
+          
             supportsImageInput={staticModel.supportsImageInput}
           />
         </div>

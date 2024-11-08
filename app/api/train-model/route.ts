@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
     if (!authHeader) {
       throw new Error('Brak autoryzacji');
     }
-    const token = authHeader.replace('Bearer ', ');
+    const token = authHeader.replace('Bearer ', '');
     
     // Pobierz dane użytkownika
     const { data: { user }, error: userError } = await supabase.auth.getUser(token);

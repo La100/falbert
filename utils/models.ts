@@ -7,6 +7,7 @@ export interface Model {
   isCustom?: boolean;
   loraPath?: string;
   supportsImageInput?: boolean; // nowe pole
+  triggerWord?: string; // Dodajemy nową właściwość
 }
 
 export const models: Model[] = [
@@ -47,13 +48,7 @@ export const models: Model[] = [
     image: '/images/models/runway-gen3-turbo.jpg',
 
   },
-  {
-    id: 'flux-pro-ultra',
-    falId: 'fal-ai/flux-pro/v1.1-ultra',
-    name: 'Flux Pro Ultra',
-    description: 'Zaawansowany model generatywny o najwyższej jakości.',
-    image: '/images/models/flux-pro-ultra.jpg',
-  },
+
 
 
 ];
