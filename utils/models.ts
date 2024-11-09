@@ -7,6 +7,7 @@ export interface Model {
   isCustom?: boolean;
   loraPath?: string;
   supportsImageInput?: boolean; // nowe pole
+  triggerWord?: string; // Dodajemy nowe pole
 }
 
 export const models: Model[] = [
@@ -53,7 +54,7 @@ export const models: Model[] = [
     falId: 'fal-ai/flux-pro/v1.1-ultra',
     name: 'Flux Pro Ultra',
     description: 'Zaawansowany model generatywny o najwyższej jakości.',
-    image: 'https://utfs.io/f/ELvVtrJ8e2Ws6o35a8QFcZ72GdMHbjONrKTYenhQsX9Ry3aD',
+    image: 'https://utfs.io/f/ELvVtrJ8e2WsGDIaAG8aTlv1t0VNZbedr3SOjohF75uIcQWM',
   },
   {
     id: 'recraft-v3',
