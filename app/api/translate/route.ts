@@ -38,7 +38,7 @@ export async function POST(request: Request) {
       messages: [
         {
           role: "system",
-          content: "Jesteś tłumaczem z języka polskiego na angielski. Tłumacz dokładnie."
+          content: "Jesteś tłumaczem z języka polskiego na angielski. Tłumacz dokładnie. Jeżeli tekst jest w cudzysłowie, nie tłumacz go."
         },
         {
           role: "user",

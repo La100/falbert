@@ -18,8 +18,7 @@ export default function GenerateStatic({ modelId, trigger_word, supportsImageInp
   const [logs, setLogs] = useState<string[]>([]);
   const [wasTranslated, setWasTranslated] = useState<boolean>(false);
   const [images, setImages] = useState<string[]>([]);
-  const [imageSize, setImageSize] = useState<string>('square');
-  const [numImages, setNumImages] = useState<number>(1);
+  const [imageSize, setImageSize] = useState<string>('square_hd');
 
   const handleImageInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -69,11 +68,10 @@ export default function GenerateStatic({ modelId, trigger_word, supportsImageInp
         prompt: translatedText,
         model: modelId,
         imageSize,
-        numImages
       };
 
       if (referenceImage && supportsImageInput) {
-        requestBody.reference_image = referenceImage;
+        requestBody.referenceImage = referenceImage;
       }
 
       const response = await fetch("/api/predictions", {
@@ -123,7 +121,7 @@ export default function GenerateStatic({ modelId, trigger_word, supportsImageInp
           {supportsImageInput && (
             <div className="p-6 border border-dashed border-secondary/60 rounded-xl bg-secondary/20">
               <label className="block text-secondary-foreground font-medium mb-3">
-                Obraz referencyjny (opcjonalnie)
+                Obraz startowy
               </label>
               <input
                 type="file"
@@ -143,7 +141,7 @@ export default function GenerateStatic({ modelId, trigger_word, supportsImageInp
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6">
             <div>
               <label className="block text-secondary-foreground font-medium mb-2">
                 Format obrazu
@@ -153,24 +151,9 @@ export default function GenerateStatic({ modelId, trigger_word, supportsImageInp
                 onChange={(e) => setImageSize(e.target.value)}
                 className="w-full px-4 py-3 bg-secondary/40 border border-secondary/60 rounded-lg text-background-foreground appearance-none"
               >
-                <option value="square">Kwadrat (1:1)</option>
+                <option value="square_hd">Kwadrat (1:1)</option>
                 <option value="portrait_16_9">Pionowy (16:9)</option>
                 <option value="landscape_4_3">Poziomy (4:3)</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-secondary-foreground font-medium mb-2">
-                Liczba wariantów
-              </label>
-              <select
-                value={numImages}
-                onChange={(e) => setNumImages(Number(e.target.value))}
-                className="w-full px-4 py-3 bg-secondary/40 border border-secondary/60 rounded-lg text-background-foreground appearance-none"
-              >
-                {[1, 2, 3, 4].map(num => (
-                  <option key={num} value={num}>{num}</option>
-                ))}
               </select>
             </div>
           </div>

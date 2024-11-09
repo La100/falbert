@@ -7,7 +7,6 @@ export interface Model {
   isCustom?: boolean;
   loraPath?: string;
   supportsImageInput?: boolean; // nowe pole
-  triggerWord?: string; // Dodajemy nową właściwość
 }
 
 export const models: Model[] = [
@@ -16,7 +15,7 @@ export const models: Model[] = [
     falId: 'fal-ai/flux/dev',
     name: 'Flux Dev',
     description: 'Eksperymentalny model generujący obrazy.',
-    image: '/images/models/flux-dev.jpg',
+    image: 'https://utfs.io/f/ELvVtrJ8e2WsRgmUP5jrfdTV27GgZ8iEkY64WFjRpclruKNS',
  
   },
   {
@@ -31,7 +30,7 @@ export const models: Model[] = [
     falId: 'fal-ai/flux-pro/v1.1',
     name: 'Flux Pro',
     description: 'Advanced model ',
-    image: '/images/models/flux-pro.jpg',
+    image: 'https://utfs.io/f/ELvVtrJ8e2WsBL8LmzfXldb9tG4FIhoDe5szV3M8c7R1Nrwf',
   },
   {
     id: 'flux-schnell',
@@ -45,10 +44,24 @@ export const models: Model[] = [
     falId: 'fal-ai/runway-gen3/turbo/image-to-video',
     name: 'Runway Gen3 Turbo',
     description: 'Model do konwersji obrazu na wideo.',
-    image: '/images/models/runway-gen3-turbo.jpg',
+    image: 'https://utfs.io/f/ELvVtrJ8e2WsrhIZxP57mARzX6w8BkYads3tNM2ufLFQKZI5',
+    supportsImageInput:true,
 
   },
-
+  {
+    id: 'flux-pro-ultra',
+    falId: 'fal-ai/flux-pro/v1.1-ultra',
+    name: 'Flux Pro Ultra',
+    description: 'Zaawansowany model generatywny o najwyższej jakości.',
+    image: 'https://utfs.io/f/ELvVtrJ8e2Ws6o35a8QFcZ72GdMHbjONrKTYenhQsX9Ry3aD',
+  },
+  {
+    id: 'recraft-v3',
+    falId: 'fal-ai/recraft-v3',
+    name: 'Recraft v3',
+    description: 'Model specjalizujący z tekstem.',
+    image: 'https://utfs.io/f/ELvVtrJ8e2WsTU6rkmiacNQziZS9Mt62fFwqJYhB7GvReuP3',
+  }
 
 
 ];

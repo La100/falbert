@@ -17,7 +17,7 @@ if (!process.env.FAL_KEY) {
 }
 
 export async function POST(request: Request) {
-  const { prompt, model, loraPath, isCustom, imageSize, numImages = 1 } = await request.json();
+  const { prompt, model, loraPath, isCustom, imageSize, referenceImage } = await request.json();
 
   if (!model || typeof model !== 'string') {
     return NextResponse.json(
@@ -77,17 +77,16 @@ export async function POST(request: Request) {
       console.log('Generowanie z modelem niestandardowym:', {
         loraPath: selectedModel.loraPath,
         prompt,
-        imageSize,
-        numImages
+        imageSize
       });
 
       result = await fal.subscribe("fal-ai/flux-lora", {
         input: {
           prompt,
           lora_url: selectedModel.loraPath,
-          num_images: numImages,
+          num_images: 1,
           safety_checker: false,
-          image_size: imageSize, // Zmienione na bezpośrednie przekazanie wartości
+          image_size: imageSize,
           loras: [{
             path: selectedModel.loraPath,
             scale: 1
@@ -98,8 +97,9 @@ export async function POST(request: Request) {
       result = await fal.subscribe(selectedModel.falId, {
         input: {
           prompt,
-          num_images: numImages,
-          image_size: imageSize, // Zmienione na bezpośrednie przekazanie wartości
+          num_images: 1,
+          image_size: imageSize,
+          image_url: referenceImage
         },
       });
     }

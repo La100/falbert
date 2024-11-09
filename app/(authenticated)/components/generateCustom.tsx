@@ -18,7 +18,6 @@ export default function GenerateCustom({ modelId, loraPath, trigger_word }: Gene
   const [prompt, setPrompt] = useState<string>('');
   const [wasTranslated, setWasTranslated] = useState<boolean>(false);
   const [imageSize, setImageSize] = useState<string>('square');
-  const [numImages, setNumImages] = useState<number>(1);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -64,7 +63,7 @@ export default function GenerateCustom({ modelId, loraPath, trigger_word }: Gene
           loraPath,
           isCustom: true,
           imageSize,
-          numImages
+          numImages: 1
         }),
       });
 
@@ -116,7 +115,7 @@ export default function GenerateCustom({ modelId, loraPath, trigger_word }: Gene
             )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6">
             <div>
               <label className="block text-secondary-foreground font-medium mb-2">
                 Format obrazu
@@ -130,21 +129,6 @@ export default function GenerateCustom({ modelId, loraPath, trigger_word }: Gene
                 <option value="portrait_16_9">Pionowy (16:9)</option>
                 <option value="landscape_16_9">Poziomy (16:9)</option>
                 <option value="landscape_4_3">Poziomy (4:3)</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-secondary-foreground font-medium mb-2">
-                Liczba wariantów
-              </label>
-              <select
-                value={numImages}
-                onChange={(e) => setNumImages(Number(e.target.value))}
-                className="w-full px-4 py-3 bg-secondary/40 border border-secondary/60 rounded-lg text-background-foreground appearance-none focus:outline-none focus:ring-2 focus:ring-primary/50 transition duration-200"
-              >
-                {[1, 2, 3, 4].map(num => (
-                  <option key={num} value={num}>{num}</option>
-                ))}
               </select>
             </div>
           </div>
