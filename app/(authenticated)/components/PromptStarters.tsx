@@ -17,7 +17,7 @@ const promptTemplates: PromptTemplate[] = [
   {
     id: 'linkedin',
     name: 'LinkedIn',
-    image: '/images/prompts/linkedin.jpg',
+    image: 'https://utfs.io/f/ELvVtrJ8e2Ws9GEeTdIN2lstfurhdnG8yJCxEASQYHBV9T7i',
     prompt: 'Profesjonalne zdjęcie profilowe w stylu LinkedIn, {trigger_word} w garniturze, neutralne tło, oświetlenie studyjne'
   },
   {

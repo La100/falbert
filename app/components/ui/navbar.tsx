@@ -12,8 +12,8 @@ import { Logo } from '@/app/components/ui/logo'
 import { PlusGrid, PlusGridItem, PlusGridRow } from '@/app/components/ui/plus-grid'
 
 const links = [
-  { href: '/pricing', label: 'Pricing' },
-  { href: '/company', label: 'Company' },
+  { href: '/pricing', label: 'Cennik' },
+  { href: '/company', label: 'Galeria' },
   { href: '/blog', label: 'Blog' },
   { href: '/signin', label: 'Login' },
 ]

@@ -123,12 +123,11 @@ export default function GenerateCustom({ modelId, loraPath, trigger_word }: Gene
               <select
                 value={imageSize}
                 onChange={(e) => setImageSize(e.target.value)}
-                className="w-full px-4 py-3 bg-secondary/40 border border-secondary/60 rounded-lg text-background-foreground appearance-none focus:outline-none focus:ring-2 focus:ring-primary/50 transition duration-200"
+                className="w-full px-4 py-3 bg-secondary/40 border border-secondary/60 rounded-lg text-background-foreground appearance-none"
               >
-                <option value="square">Kwadrat (1:1)</option>
-                <option value="portrait_16_9">Pionowy (16:9)</option>
-                <option value="landscape_16_9">Poziomy (16:9)</option>
-                <option value="landscape_4_3">Poziomy (4:3)</option>
+                <option value="square">Kwadrat (1536x1536)</option>
+                <option value="portrait">Pionowy (1536x2752)</option>
+                <option value="landscape">Poziomy (2752x1536)</option>
               </select>
             </div>
           </div>

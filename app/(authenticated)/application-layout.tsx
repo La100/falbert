@@ -10,7 +10,7 @@ import {
   Square2StackIcon,
   UserCircleIcon,
   ArrowRightStartOnRectangleIcon,
-} from '@heroicons/react/20/solid';
+} from '@heroicons/react/24/outline';
 
 export function ApplicationLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -51,27 +51,24 @@ export function ApplicationLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      {user ? (
+   
         <SidebarLayout
           sidebar={
             <Sidebar>
               <SidebarHeader>
-                <img src="/vercel.svg" className='invert h-6 w-auto' />
+                <img src="/vercel.svg" className='invert h-6 ' />
               </SidebarHeader>
 
               <SidebarBody>
                 <SidebarSection>
-                  <SidebarItem href="/" >
-                    <HomeIcon />
-                    <SidebarLabel>Strona główna</SidebarLabel>
-                  </SidebarItem>
+                  
                   <SidebarItem href="/models" >
                     <SparklesIcon />
                     <SidebarLabel>Modele</SidebarLabel>
                   </SidebarItem>
                   <SidebarItem href="/twojemodele">
                     <SparklesIcon />
-                    <SidebarLabel>Twoje własne modele</SidebarLabel>
+                    <SidebarLabel>Twoje modele</SidebarLabel>
                   </SidebarItem>
                   <SidebarItem href="/train" >
                     <Square2StackIcon />
@@ -99,12 +96,7 @@ export function ApplicationLayout({ children }: { children: React.ReactNode }) {
         >
           {children}
         </SidebarLayout>
-      ) : (
-        <>
-          {/* Zawartość dla niezalogowanych użytkowników */}
-          {children}
-        </>
-      )}
+      
     </>
   );
 }

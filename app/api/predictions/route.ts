@@ -16,6 +16,20 @@ if (!process.env.FAL_KEY) {
   );
 }
 
+// Zaktualizowana funkcja getImageDimensions
+const getImageDimensions = (imageSize: string) => {
+  switch (imageSize) {
+    case 'square':
+      return { width: 1536, height: 1536 };
+    case 'portrait':
+      return { width: 1536, height: 2752 };
+    case 'landscape':
+      return { width: 2752, height: 1536 };
+    default:
+      return { width: 1536, height: 1536 }; // domyślnie kwadrat
+  }
+};
+
 export async function POST(request: Request) {
   const { prompt, model, loraPath, isCustom, imageSize, referenceImage } = await request.json();
 
@@ -73,11 +87,13 @@ export async function POST(request: Request) {
 
   try {
     let result;
+    const dimensions = getImageDimensions(imageSize);
+
     if (selectedModel.isCustom) {
       console.log('Generowanie z modelem niestandardowym:', {
         loraPath: selectedModel.loraPath,
         prompt,
-        imageSize
+        image_size: dimensions
       });
 
       result = await fal.subscribe("fal-ai/flux-lora", {
@@ -86,7 +102,10 @@ export async function POST(request: Request) {
           lora_url: selectedModel.loraPath,
           num_images: 1,
           safety_checker: false,
-          image_size: imageSize,
+          image_size: {
+            width: dimensions.width,
+            height: dimensions.height
+          },
           loras: [{
             path: selectedModel.loraPath,
             scale: 1
@@ -98,7 +117,10 @@ export async function POST(request: Request) {
         input: {
           prompt,
           num_images: 1,
-          image_size: imageSize,
+          image_size: {
+            width: dimensions.width,
+            height: dimensions.height
+          },
           image_url: referenceImage
         },
       });

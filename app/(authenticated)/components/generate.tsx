@@ -18,7 +18,7 @@ export default function GenerateStatic({ modelId, trigger_word, supportsImageInp
   const [logs, setLogs] = useState<string[]>([]);
   const [wasTranslated, setWasTranslated] = useState<boolean>(false);
   const [images, setImages] = useState<string[]>([]);
-  const [imageSize, setImageSize] = useState<string>('square_hd');
+  const [imageSize, setImageSize] = useState<string>('square');
 
   const handleImageInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -71,7 +71,7 @@ export default function GenerateStatic({ modelId, trigger_word, supportsImageInp
       };
 
       if (referenceImage && supportsImageInput) {
-        requestBody.referenceImage = referenceImage;
+        requestBody.reference_image = referenceImage;
       }
 
       const response = await fetch("/api/predictions", {
@@ -151,9 +151,9 @@ export default function GenerateStatic({ modelId, trigger_word, supportsImageInp
                 onChange={(e) => setImageSize(e.target.value)}
                 className="w-full px-4 py-3 bg-secondary/40 border border-secondary/60 rounded-lg text-background-foreground appearance-none"
               >
-                <option value="square_hd">Kwadrat (1:1)</option>
-                <option value="portrait_16_9">Pionowy (16:9)</option>
-                <option value="landscape_4_3">Poziomy (4:3)</option>
+                <option value="square">Kwadrat (1536x1536)</option>
+                <option value="portrait">Pionowy (1536x2752)</option>
+                <option value="landscape">Poziomy (2752x1536)</option>
               </select>
             </div>
           </div>
