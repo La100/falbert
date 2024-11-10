@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import type { Database } from '@/types/supabase';
 import Link from 'next/link';
+import { Button } from '@/app/components/ui/button2';
 // Zmiana na createClientComponentClient
 const supabase = createClientComponentClient<Database>();
 
@@ -26,7 +27,12 @@ const subjectTypes: SubjectType[] = [
   { name: 'Jedzenie', icon: FaHamburger },
 ];
 
-const NewModel: React.FC = () => {
+// Dodaj interfejs props
+interface NewModelProps {
+  onTypeChange?: (type: string) => void;
+}
+
+const NewModel: React.FC<NewModelProps> = ({ onTypeChange }) => {
   const router = useRouter();
   const [modelName, setModelName] = useState('');
   const [selectedType, setSelectedType] = useState('');
@@ -70,6 +76,7 @@ const NewModel: React.FC = () => {
 
   const handleTypeSelection = (typeName: string) => {
     setSelectedType(typeName);
+    onTypeChange?.(typeName);
   };
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -162,62 +169,70 @@ const NewModel: React.FC = () => {
     });
   };
 
-  // Dodajemy komunikat o braku sesji
+  // Komponent logowania bez zmian
   if (!session) {
     return (
-      <div className="bg-gray-900 text-gray-100 p-6 rounded-lg max-w-2xl mx-auto">
-        <p className="text-center mb-4">Musisz być zalogowany, aby trenować modele.</p>
-        <div className="text-center">
-          <Link 
-            href="/signin"
-            className="inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-          >
-            Zaloguj się
-          </Link>
-        </div>
+      <div className="bg-secondary/30 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-secondary/50">
+        <p className="text-background-foreground mb-4">Musisz być zalogowany, aby trenować modele.</p>
+        <Link 
+          href="/signin"
+          className="inline-flex items-center text-primary hover:text-primary/80 transition-colors"
+        >
+          Zaloguj się
+          <svg className="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </Link>
       </div>
     );
   }
  
   return (
-    <form onSubmit={handleSubmit} className="bg-gray-900 text-gray-100 p-6 rounded-lg max-w-2xl mx-auto">
-      <h2 className="text-2xl font-bold mb-4">Trenuj Model</h2>
-      <p className="text-gray-400 mb-6">Wybierz nazwę, typ i wgraj co najmniej 4 zdjęcia, aby rozpocząć.</p>
-
-      <div className="mb-6">
-        <label htmlFor="modelName" className="block text-sm font-medium mb-2">Nazwa</label>
-        <input
-          type="text"
-          id="modelName"
-          placeholder="np. Zdjęcia Soni"
-          className="w-full bg-gray-800 border border-gray-700 rounded-md py-2 px-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          value={modelName}
-          onChange={(e) => setModelName(e.target.value)}
-        />
-      </div>
-
-      <div className="mb-6">
-        <p className="text-sm font-medium mb-2">Typ Podmiotu</p>
-        <div className="grid grid-cols-4 gap-4">
-          {subjectTypes.map((type) => (
-            <button
-              key={type.name}
-              type="button"
-              className={`flex flex-col items-center justify-center p-4 rounded-lg border ${
-                selectedType === type.name ? 'border-blue-500 bg-blue-900' : 'border-gray-700 hover:bg-gray-800'
-              }`}
-              onClick={() => handleTypeSelection(type.name)}
-            >
-              <type.icon className="text-2xl mb-2" />
-              <span className="text-xs">{type.name}</span>
-            </button>
-          ))}
+    <div className="bg-secondary/30 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-secondary/50">
+      <h2 className="text-2xl font-bold mb-8 text-background-foreground">
+        Szczegóły Modelu
+      </h2>
+      
+      <form onSubmit={handleSubmit} className="space-y-8">
+        <div>
+          <label htmlFor="modelName" className="block text-secondary-foreground font-medium mb-2">
+            Nazwa Modelu
+          </label>
+          <input
+            type="text"
+            id="modelName"
+            placeholder="np. Zdjęcia Soni"
+            className="w-full px-6 py-4 bg-secondary/40 border border-secondary/60 rounded-xl text-background-foreground placeholder-secondary-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50 transition duration-200"
+            value={modelName}
+            onChange={(e) => setModelName(e.target.value)}
+          />
         </div>
-      </div>
 
-      <div className="mb-6">
-        <p className="text-sm font-medium mb-2">Próbki</p>
-        <div className="border-2 border-dashed border-gray-700 rounded-lg p-4">
+        <div>
+          <p className="block text-secondary-foreground font-medium mb-4">Typ Podmiotu</p>
+          <div className="grid grid-cols-4 gap-4">
+            {subjectTypes.map((type) => (
+              <button
+                key={type.name}
+                type="button"
+                className={`p-4 rounded-xl border transition-all duration-300 ${
+                  selectedType === type.name 
+                  ? 'border-primary bg-primary/10 text-primary shadow-lg scale-105'
+                  : 'border-secondary/60 hover:border-primary/50 text-secondary-foreground hover:bg-secondary/40'
+                }`}
+                onClick={() => handleTypeSelection(type.name)}
+              >
+                <type.icon className={`text-2xl mb-2 mx-auto ${
+                  selectedType === type.name ? 'text-primary' : 'text-secondary-foreground'
+                }`} />
+                <span className="text-xs">{type.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="p-6 border border-dashed border-secondary/60 rounded-xl bg-secondary/20">
+          <p className="block text-secondary-foreground font-medium mb-3">Próbki</p>
           <input
             type="file"
             multiple
@@ -228,30 +243,28 @@ const NewModel: React.FC = () => {
           />
           <label
             htmlFor="imageUpload"
-            className="cursor-pointer block text-center p-4 hover:bg-gray-800 rounded transition-colors"
+            className="cursor-pointer block text-center p-6 rounded-xl transition-colors hover:bg-secondary/30 border border-secondary/40"
           >
-            <div className="flex flex-col items-center gap-2">
-              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              <p className="font-medium">Upuść obrazy tutaj lub kliknij, aby wybrać</p>
-              <p className="text-sm text-gray-500">Wgraj 4-20 obrazów (format JPG, PNG)</p>
-            </div>
+            <svg className="w-8 h-8 text-secondary-foreground/70 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            <p className="text-background-foreground">Upuść obrazy tutaj lub kliknij, aby wybrać</p>
+            <p className="text-sm text-secondary-foreground/70 mt-1">Wgraj 4-20 obrazów (format JPG, PNG)</p>
           </label>
 
           {imagePreviews.length > 0 && (
-            <div className="mt-4 grid grid-cols-4 gap-4">
+            <div className="mt-6 grid grid-cols-4 gap-4">
               {imagePreviews.map((preview, index) => (
-                <div key={index} className="relative group">
+                <div key={index} className="group relative overflow-hidden rounded-xl border border-secondary/60 transition-all hover:border-primary/60">
                   <img
                     src={preview}
                     alt={`Preview ${index + 1}`}
-                    className="w-full h-24 object-cover rounded-lg"
+                    className="w-full h-24 object-cover transition-transform duration-300 group-hover:scale-105"
                   />
                   <button
                     type="button"
                     onClick={() => handleRemoveImage(index)}
-                    className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute top-2 right-2 bg-background/80 text-primary p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -262,33 +275,39 @@ const NewModel: React.FC = () => {
             </div>
           )}
         </div>
-        {images.length > 0 && (
-          <p className="mt-2 text-sm text-gray-400">
-            Wybrano {images.length} {images.length === 1 ? 'obraz' : images.length < 5 ? 'obrazy' : 'obrazów'}
-          </p>
-        )}
-      </div>
 
-      <button
-        type="submit"
-        disabled={isLoading || images.length < 1 || !modelName || !selectedType}
-        className="mt-6 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50"
-      >
-        {isLoading ? 'Przetwarzanie...' : 'Trenuj Model'}
-      </button>
-      
-      {/* Dodajemy wyświetlanie statusu */}
-      {trainingStatus && (
-        <div className="mt-4 p-4 bg-gray-800 rounded-lg">
-          <div className="flex items-center">
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500 mr-2"></div>
-            <p className="text-sm text-gray-300">{trainingStatus}</p>
+        <Button
+        variant="secondary"
+          type="submit"
+          disabled={isLoading || images.length < 1 || !modelName || !selectedType}
+          className="w-full py-4 bg-primary hover:bg-primary-hover text-primary-foreground font-medium rounded-xl transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        >
+          {isLoading ? (
+            <>
+              <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-foreground"></span>
+              Przetwarzanie...
+            </>
+          ) : (
+            'Trenuj Model'
+          )}
+        </Button>
+        
+        {trainingStatus && (
+          <div className="mt-6 p-4 bg-primary/10 border border-primary/30 rounded-xl text-primary-foreground">
+            <div className="flex items-center gap-2">
+              <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></span>
+              <p>{trainingStatus}</p>
+            </div>
           </div>
-        </div>
-      )}
-      
-      {error && <p className="mt-4 text-red-500">{error}</p>}
-    </form>
+        )}
+        
+        {error && (
+          <div className="mt-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-500">
+            {error}
+          </div>
+        )}
+      </form>
+    </div>
   );
 };
 
