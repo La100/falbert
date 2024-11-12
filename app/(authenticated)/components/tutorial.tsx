@@ -32,34 +32,34 @@ const Tutorial: React.FC<TutorialProps> = ({ selectedType = 'Person' }) => {
   const tutorialContent = {
     Person: {
       examples: [1, 2, 3, 4],
-      instructions: 'Name your model any name you want, and select the type of subject (Person, Man, Woman)',
-      goodExamples: 'Front facing portraits, clear face shots, various expressions',
-      badExamples: 'Multiple people in frame, blurry shots, face covered, full body shots'
+      instructions: 'Nazwij swój model i wybierz typ podmiotu (Osoba, Mężczyzna, Kobieta)',
+      goodExamples: 'Portrety z przodu, wyraźne zdjęcia twarzy, różne wyrazy twarzy',
+      badExamples: 'Wiele osób w kadrze, nieostre zdjęcia, zasłonięta twarz, zdjęcia całej sylwetki'
     },
     Product: {
       examples: [1, 2, 3, 4],
-      instructions: 'Name your product model and select Product type',
-      goodExamples: 'Clean background, multiple angles, good lighting, consistent style',
-      badExamples: 'Multiple products, busy backgrounds, poor lighting, inconsistent angles'
+      instructions: 'Nazwij swój model produktu i wybierz typ Produkt',
+      goodExamples: 'Czyste tło, wiele kątów, dobre oświetlenie, spójny styl',
+      badExamples: 'Wiele produktów, przeładowane tło, słabe oświetlenie, niespójne kąty'
     },
     Style: {
       examples: [1, 2, 3, 4],
-      instructions: 'Name your style model and select Style type',
-      goodExamples: 'Consistent artistic style, clear visual elements, good variety',
-      badExamples: 'Mixed styles, inconsistent elements, poor quality images'
+      instructions: 'Nazwij swój model stylu i wybierz typ Styl',
+      goodExamples: 'Spójny styl artystyczny, wyraźne elementy wizualne, dobra różnorodność',
+      badExamples: 'Mieszane style, niespójne elementy, zdjęcia słabej jakości'
     },
     Pet: {
       examples: [1, 2, 3, 4],
-      instructions: 'Name your pet model and select Pet type',
-      goodExamples: 'Clear pet photos, various poses, good lighting, consistent subject',
-      badExamples: 'Multiple pets, blurry shots, poor lighting, inconsistent subjects'
+      instructions: 'Nazwij swój model zwierzęcia i wybierz typ Zwierzę',
+      goodExamples: 'Wyraźne zdjęcia zwierząt, różne pozy, dobre oświetlenie, spójny podmiot',
+      badExamples: 'Wiele zwierząt, nieostre zdjęcia, słabe oświetlenie, niespójne podmioty'
     }
   };
 
   return (
     <div className="bg-secondary/30 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-secondary/50">
       <h2 className="text-xl font-bold mb-6 text-background-foreground">
-        Tutorial
+        Samouczek
       </h2>
 
       {/* Tabs dla różnych typów */}
@@ -81,7 +81,7 @@ const Tutorial: React.FC<TutorialProps> = ({ selectedType = 'Person' }) => {
 
       <div className="space-y-8">
         <div>
-          <h3 className="text-lg font-medium text-primary mb-4">How to get results:</h3>
+          <h3 className="text-lg font-medium text-primary mb-4">Jak uzyskać rezultaty:</h3>
           
           {/* Example images grid */}
           <div className="grid grid-cols-4 gap-2 mb-4">
@@ -105,7 +105,7 @@ const Tutorial: React.FC<TutorialProps> = ({ selectedType = 'Person' }) => {
                 </svg>
               </div>
               <div>
-                <h4 className="font-medium text-background-foreground">Input model name and type</h4>
+                <h4 className="font-medium text-background-foreground">Wprowadź nazwę modelu i typ</h4>
                 <p className="text-sm text-secondary-foreground/70 mt-1">
                   {tutorialContent[activeTab as keyof typeof tutorialContent].instructions}
                 </p>
@@ -120,7 +120,7 @@ const Tutorial: React.FC<TutorialProps> = ({ selectedType = 'Person' }) => {
                 </svg>
               </div>
               <div>
-                <h4 className="font-medium text-background-foreground">Choose good pictures</h4>
+                <h4 className="font-medium text-background-foreground">Wybierz dobre zdjęcia</h4>
                 <p className="text-sm text-secondary-foreground/70 mt-1">
                   {tutorialContent[activeTab as keyof typeof tutorialContent].goodExamples}
                 </p>
@@ -148,9 +148,9 @@ const Tutorial: React.FC<TutorialProps> = ({ selectedType = 'Person' }) => {
                 </svg>
               </div>
               <div>
-                <h4 className="font-medium text-background-foreground">Example of bad pictures</h4>
+                <h4 className="font-medium text-background-foreground">Przykłady złych zdjęć</h4>
                 <p className="text-sm text-secondary-foreground/70 mt-1">
-                  Multiple subjects, face covered, NSFW images, blurry, uncropped, full length
+                  Wiele podmiotów, zasłonięta twarz, zdjęcia NSFW, nieostre, nieprzycięte, całe sylwetki
                 </p>
                 
                 {/* Bad examples grid */}
@@ -176,9 +176,9 @@ const Tutorial: React.FC<TutorialProps> = ({ selectedType = 'Person' }) => {
                 </svg>
               </div>
               <div>
-                <h4 className="font-medium text-background-foreground">Train your model</h4>
+                <h4 className="font-medium text-background-foreground">Wytrenuj swój model</h4>
                 <p className="text-sm text-secondary-foreground/70 mt-1">
-                  Training your model takes ~30 minutes. You can leave the page and come back
+                  Trenowanie modelu trwa około 30 minut. Możesz opuścić stronę i wrócić później
                 </p>
               </div>
             </div>
@@ -191,9 +191,9 @@ const Tutorial: React.FC<TutorialProps> = ({ selectedType = 'Person' }) => {
                 </svg>
               </div>
               <div>
-                <h4 className="font-medium text-background-foreground">Generate images</h4>
+                <h4 className="font-medium text-background-foreground">Generuj obrazy</h4>
                 <p className="text-sm text-secondary-foreground/70 mt-1">
-                  Once your model is trained, you can generate images using prompts. Make sure to include the subject keyword in your prompts.
+                  Po wytrenowaniu modelu możesz generować obrazy używając promptów. Pamiętaj, aby zawrzeć słowo kluczowe podmiotu w swoich promptach.
                 </p>
               </div>
             </div>

@@ -8,6 +8,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import type { Database } from '@/types/supabase';
 import Link from 'next/link';
 import { Button } from '@/app/components/ui/button2';
+import { getUser } from '@/utils/supabase/queries';
 // Zmiana na createClientComponentClient
 const supabase = createClientComponentClient<Database>();
 
@@ -48,14 +49,17 @@ const NewModel: React.FC<NewModelProps> = ({ onTypeChange }) => {
   // Dodajemy useEffect do sprawdzania sesji
   useEffect(() => {
     const checkSession = async () => {
-      const { data: { session: currentSession }, error } = await supabase.auth.getSession();
-      if (error) {
-        console.error('Błąd podczas sprawdzania sesji:', error);
-        setError('Błąd podczas sprawdzania sesji');
-        return;
+      try {
+        const user = await getUser(supabase);
+        if (!user) {
+          router.push('/signin');
+          return;
+        }
+        setSession({ user });
+      } catch (error) {
+        console.error('Błąd podczas weryfikacji użytkownika:', error);
+        setError('Błąd podczas weryfikacji użytkownika');
       }
-      console.log('Aktualna sesja:', currentSession);
-      setSession(currentSession);
     };
 
     checkSession();
@@ -86,14 +90,11 @@ const NewModel: React.FC<NewModelProps> = ({ onTypeChange }) => {
     setTrainingStatus('Rozpoczynam proces trenowania...');
 
     try {
+      const supabase = createClientComponentClient();
+      const { data: { session } } = await supabase.auth.getSession();
+
       if (!session) {
-        console.log('Brak sesji - sprawdzam ponownie...');
-        const { data: { session: currentSession } } = await supabase.auth.getSession();
-        if (!currentSession) {
-          console.error('Brak sesji po ponownym sprawdzeniu');
-          throw new Error('Nie jesteś zalogowany. Zaloguj się i spróbuj ponownie.');
-        }
-        setSession(currentSession);
+        throw new Error('Nie jesteś zalogowany');
       }
 
       setTrainingStatus('Przygotowywanie plików...');
@@ -217,14 +218,12 @@ const NewModel: React.FC<NewModelProps> = ({ onTypeChange }) => {
                 type="button"
                 className={`p-4 rounded-xl border transition-all duration-300 ${
                   selectedType === type.name 
-                  ? 'border-primary bg-primary/10 text-primary shadow-lg scale-105'
+                  ? 'border-primary bg-primary/10 text-primary' 
                   : 'border-secondary/60 hover:border-primary/50 text-secondary-foreground hover:bg-secondary/40'
                 }`}
                 onClick={() => handleTypeSelection(type.name)}
               >
-                <type.icon className={`text-2xl mb-2 mx-auto ${
-                  selectedType === type.name ? 'text-primary' : 'text-secondary-foreground'
-                }`} />
+                <type.icon className="text-2xl mb-2 mx-auto" />
                 <span className="text-xs">{type.name}</span>
               </button>
             ))}

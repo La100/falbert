@@ -1,7 +1,10 @@
 'use client';
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import Image from "next/image";
 import PromptStarters from "./PromptStarters";
+import { Download } from 'lucide-react';
+import DownloadButton from './DownloadButton';
 
 interface GenerateCustomProps {
   modelId: string;
@@ -9,8 +12,13 @@ interface GenerateCustomProps {
   trigger_word?: string;
 }
 
+interface GeneratedImage {
+  url: string;
+  originalUrl: string;
+}
+
 export default function GenerateCustom({ modelId, loraPath, trigger_word }: GenerateCustomProps) {
-  const [images, setImages] = useState<string[]>([]);
+  const [images, setImages] = useState<GeneratedImage[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [queuePosition, setQueuePosition] = useState<number | null>(null);
@@ -18,18 +26,24 @@ export default function GenerateCustom({ modelId, loraPath, trigger_word }: Gene
   const [prompt, setPrompt] = useState<string>('');
   const [wasTranslated, setWasTranslated] = useState<boolean>(false);
   const [imageSize, setImageSize] = useState<string>('square');
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
-    setImages([]);
     setIsLoading(true);
-    setQueuePosition(null);
     setLogs([]);
-
+    setImages([]);
+    
     const prompt = (e.currentTarget.elements.namedItem('prompt') as HTMLInputElement).value;
 
     try {
+      const supabase = createClientComponentClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error('Nie jesteś zalogowany');
+      }
+
+      // Tłumaczenie promptu
       const translationResponse = await fetch("/api/translate", {
         method: "POST",
         headers: {
@@ -49,13 +63,18 @@ export default function GenerateCustom({ modelId, loraPath, trigger_word }: Gene
       setWasTranslated(wasTranslated);
       
       if (wasTranslated) {
-        setLogs(prev => [...prev, `Oryginalny prompt: ${originalText}`, `Przetłumaczony prompt: ${translatedText}`]);
+        setLogs(prev => [
+          `Oryginalny prompt: ${originalText}`, 
+          `Przetłumaczony prompt: ${translatedText}`
+        ]);
       }
 
+      // Generowanie obrazu
       const response = await fetch("/api/predictions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.access_token}`
         },
         body: JSON.stringify({
           prompt: translatedText,
@@ -67,18 +86,17 @@ export default function GenerateCustom({ modelId, loraPath, trigger_word }: Gene
         }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.queuePosition) {
-          setQueuePosition(data.queuePosition);
-        }
-        setImages(data.images.map((img: any) => img.url));
-      } else {
-        const errorData = await response.json();
-        setError(errorData.detail || "Wystąpił błąd podczas generowania obrazu.");
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail || "Wystąpił błąd podczas generowania obrazu.");
       }
+
+      setImages(data.images);
+
     } catch (err: any) {
-      setError("Wystąpił błąd podczas wysyłania żądania.");
+      console.error('Błąd:', err);
+      setError(err.message || "Wystąpił błąd podczas wysyłania żądania.");
     } finally {
       setIsLoading(false);
     }
@@ -165,13 +183,19 @@ export default function GenerateCustom({ modelId, loraPath, trigger_word }: Gene
 
         {images.length > 0 && (
           <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-            {images.map((url, index) => (
+            {images.map((img, index) => (
               <div key={index} className="group relative overflow-hidden rounded-xl border border-secondary/60 transition-all hover:border-primary/60">
                 <img
-                  src={url}
+                  src={img.url}
                   alt={`Wygenerowany obraz ${index + 1}`}
                   className="w-full h-auto transition-transform duration-300 group-hover:scale-105"
                 />
+                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  <DownloadButton 
+                    url={img.url} 
+                    filename={`generated-custom-${Date.now()}.png`}
+                  />
+                </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                   <div className="absolute bottom-4 left-4 text-white text-sm">
                     Wariant {index + 1}

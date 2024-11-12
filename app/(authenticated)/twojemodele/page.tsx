@@ -1,56 +1,23 @@
-'use client';
-import { useEffect, useState } from 'react';
+import { getUser } from '@/utils/supabase/queries';
+import { redirect } from 'next/navigation';
+import { createClient } from '@/utils/supabase/server';
 import Link from 'next/link';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import type { Database } from '@/types/supabase';
-import { LoadingSpinner } from '@/app/components/ui/spinner';
-type UserModel = Database['public']['Tables']['user_models']['Row'];
+export default async function ModelsPage() {
+  const supabase = createClient();
+  const user = await getUser(supabase);
 
-export default function ModelsPage() {
-  const [userModels, setUserModels] = useState<UserModel[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  
-  const supabase = createClientComponentClient<Database>();
+  if (!user) {
+    return redirect('/signin');
+  }
 
-  useEffect(() => {
-    async function loadModels() {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (session?.user) {
-          const { data: models, error } = await supabase
-            .from('user_models')
-            .select('*')
-            .eq('user_id', session.user.id);
+  const { data: userModels, error } = await supabase
+    .from('user_models')
+    .select('*')
+    .eq('user_id', user.id);
 
-          if (error) throw error;
-          setUserModels(models || []);
-        }
-      } catch (err) {
-        console.error('Błąd podczas ładowania modeli:', err);
-        setError('Nie udało się załadować modeli');
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    loadModels();
-  }, [supabase]);
-
-  if (isLoading) return (
-    <div className="flex items-center justify-center min-h-screen">
-      <LoadingSpinner className="w-10 h-10 text-primary" />
-    </div>
-  );
-
-  if (error) return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-500">
-        {error}
-      </div>
-    </div>
-  );
+  if (error) {
+    throw error;
+  }
 
   return (
     <div className="container mx-auto px-4 py-12">

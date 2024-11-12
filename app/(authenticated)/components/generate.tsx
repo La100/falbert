@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from "react";
-import Image from "next/image";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { Download } from 'lucide-react';
 
 interface GenerateStaticProps {
   modelId: string;
@@ -9,15 +10,35 @@ interface GenerateStaticProps {
   supportsImageInput?: boolean;
 }
 
+interface GeneratedImage {
+  url: string;
+  originalUrl: string;
+}
+
+const downloadImage = async (imageUrl: string, filename: string) => {
+  try {
+    const response = await fetch(imageUrl);
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename || 'generated-image.png';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Błąd podczas pobierania obrazu:', error);
+  }
+};
+
 export default function GenerateStatic({ modelId, trigger_word, supportsImageInput }: GenerateStaticProps) {
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [referenceImage, setReferenceImage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [queuePosition, setQueuePosition] = useState<number | null>(null);
   const [logs, setLogs] = useState<string[]>([]);
   const [wasTranslated, setWasTranslated] = useState<boolean>(false);
-  const [images, setImages] = useState<string[]>([]);
+  const [images, setImages] = useState<GeneratedImage[]>([]);
   const [imageSize, setImageSize] = useState<string>('square');
 
   const handleImageInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -34,23 +55,20 @@ export default function GenerateStatic({ modelId, trigger_word, supportsImageInp
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
-    setImageUrl(null);
     setIsLoading(true);
-    setQueuePosition(null);
     setLogs([]);
+    setImages([]);
 
     const prompt = (e.currentTarget.elements.namedItem('prompt') as HTMLInputElement).value;
 
     try {
-      // Najpierw tłumaczymy prompt
+      // Tłumaczenie promptu
       const translationResponse = await fetch("/api/translate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          text: prompt
-        }),
+        body: JSON.stringify({ text: prompt }),
       });
 
       if (!translationResponse.ok) {
@@ -61,36 +79,37 @@ export default function GenerateStatic({ modelId, trigger_word, supportsImageInp
       setWasTranslated(wasTranslated);
       
       if (wasTranslated) {
-        setLogs(prev => [...prev, `Oryginalny prompt: ${originalText}`, `Przetłumaczony prompt: ${translatedText}`]);
+        setLogs(prev => [
+          `Oryginalny prompt: ${originalText}`, 
+          `Przetłumaczony prompt: ${translatedText}`
+        ]);
       }
 
-      const requestBody: any = {
-        prompt: translatedText,
-        model: modelId,
-        imageSize,
-      };
-
-      if (referenceImage && supportsImageInput) {
-        requestBody.reference_image = referenceImage;
-      }
-
+      // Generowanie obrazu
       const response = await fetch("/api/predictions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(requestBody),
+        body: JSON.stringify({
+          prompt: translatedText,
+          model: modelId,
+          imageSize,
+          referenceImage
+        }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        setImages(data.images.map((img: any) => img.url));
-      } else {
+      if (!response.ok) {
         const errorData = await response.json();
-        setError(errorData.detail || "Wystąpił błąd podczas generowania obrazu.");
+        throw new Error(errorData.detail || "Wystąpił błąd podczas generowania obrazu.");
       }
+
+      const data = await response.json();
+      setImages(data.images);
+
     } catch (err: any) {
-      setError("Wystąpił błąd podczas wysyłania żądania.");
+      console.error('Błąd:', err);
+      setError(err.message || "Wystąpił błąd podczas wysyłania żądania.");
     } finally {
       setIsLoading(false);
     }
@@ -99,7 +118,7 @@ export default function GenerateStatic({ modelId, trigger_word, supportsImageInp
   return (
     <div className="max-w-4xl mx-auto p-8">
       <div className="bg-secondary/30 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-secondary/50">
-        <h1 className="text-4xl font-bold mb-8 bg-gradient-to-r from-primary to-accent bg-clip-text  text-center">
+        <h1 className="text-4xl font-bold mb-8 bg-gradient-to-r from-primary to-accent bg-clip-text text-center">
           Stwórz swoją wizję
         </h1>
 
@@ -109,7 +128,8 @@ export default function GenerateStatic({ modelId, trigger_word, supportsImageInp
               type="text"
               className="w-full px-6 py-4 bg-secondary/40 border border-secondary/60 rounded-xl text-background-foreground placeholder-secondary-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/50 transition duration-200"
               name="prompt"
-              placeholder="Opisz swoją wizję..."
+              placeholder="Wpisz co chcesz wygenerować"
+              required
             />
             {trigger_word && (
               <div className="mt-2 text-secondary-foreground/70 text-sm">
@@ -146,15 +166,17 @@ export default function GenerateStatic({ modelId, trigger_word, supportsImageInp
               <label className="block text-secondary-foreground font-medium mb-2">
                 Format obrazu
               </label>
-              <select
-                value={imageSize}
-                onChange={(e) => setImageSize(e.target.value)}
-                className="w-full px-4 py-3 bg-secondary/40 border border-secondary/60 rounded-lg text-background-foreground appearance-none"
-              >
-                <option value="square">Kwadrat (1536x1536)</option>
-                <option value="portrait">Pionowy (1536x2752)</option>
-                <option value="landscape">Poziomy (2752x1536)</option>
-              </select>
+              <div className="relative">
+                <select
+                  value={imageSize}
+                  onChange={(e) => setImageSize(e.target.value)}
+                  className="w-full px-4 py-3 bg-secondary/40 border border-secondary/60 rounded-lg text-background-foreground appearance-none cursor-pointer hover:border-primary/60 transition-colors"
+                >
+                  <option value="square">Kwadrat</option>
+                  <option value="portrait">Pionowy</option>
+                  <option value="landscape">Poziomy</option>
+                </select>
+              </div>
             </div>
           </div>
 
@@ -180,21 +202,21 @@ export default function GenerateStatic({ modelId, trigger_word, supportsImageInp
           </div>
         )}
 
-        {queuePosition !== null && (
-          <div className="mt-6 p-4 bg-primary/10 border border-primary/30 rounded-lg text-primary-foreground">
-            Pozycja w kolejce: {queuePosition}
-          </div>
-        )}
-
         {images.length > 0 && (
           <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-            {images.map((url, index) => (
+            {images.map((img, index) => (
               <div key={index} className="group relative overflow-hidden rounded-xl border border-secondary/60 transition-all hover:border-primary/60">
                 <img
-                  src={url}
+                  src={img.url}
                   alt={`Wygenerowany obraz ${index + 1}`}
                   className="w-full h-auto transition-transform duration-300 group-hover:scale-105"
                 />
+                <button
+                  onClick={() => downloadImage(img.url, `generated-${Date.now()}.png`)}
+                  className="absolute top-2 right-2 p-2 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-black/70"
+                >
+                  <Download className="w-5 h-5 text-white" />
+                </button>
               </div>
             ))}
           </div>
@@ -202,10 +224,14 @@ export default function GenerateStatic({ modelId, trigger_word, supportsImageInp
 
         {wasTranslated && logs.length > 0 && (
           <div className="mt-6 p-6 bg-secondary/20 border border-secondary/40 rounded-xl">
-            <h3 className="font-medium text-lg mb-3 text-secondary-foreground">Informacje o prompcie:</h3>
+            <h3 className="font-medium text-lg mb-3 text-secondary-foreground">
+              Informacje o prompcie:
+            </h3>
             <ul className="space-y-2">
               {logs.map((log, index) => (
-                <li key={index} className="text-secondary-foreground/80 text-sm">{log}</li>
+                <li key={index} className="text-secondary-foreground/80 text-sm">
+                  {log}
+                </li>
               ))}
             </ul>
           </div>

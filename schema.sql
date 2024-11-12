@@ -208,4 +208,31 @@ create trigger update_user_models_updated_at
   for each row
   execute function update_updated_at_column();
 
+/**
+* GENERATED_IMAGES
+* Note: This table contains generated images. Users should only be able to view and manage their own images.
+*/
+create table generated_images (
+  id uuid default uuid_generate_v4() primary key,
+  user_id uuid references auth.users(id) not null,
+  url text not null,
+  original_url text not null,
+  prompt text not null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Enable RLS
+alter table generated_images enable row level security;
+
+-- Create policies
+create policy "Users can view their own images"
+  on generated_images
+  for select
+  using (auth.uid() = user_id);
+
+create policy "Users can insert their own images"
+  on generated_images
+  for insert
+  with check (auth.uid() = user_id);
+
 

@@ -6,9 +6,11 @@ import { SidebarLayout } from '@/app/(authenticated)/components/sidebar-layout';
 import { Sidebar, SidebarHeader, SidebarBody, SidebarSection, SidebarItem, SidebarLabel, SidebarSpacer, SidebarFooter } from '@/app/(authenticated)/components/sidebar';
 import {
   SparklesIcon,
-  Square2StackIcon,
+  CameraIcon,
   UserCircleIcon,
   ArrowRightStartOnRectangleIcon,
+  RocketLaunchIcon,
+  PhotoIcon
 } from '@heroicons/react/24/outline';
 import { Logo } from '@/app/components/ui/logo';
 
@@ -57,7 +59,7 @@ export function ApplicationLayout({ children }: { children: React.ReactNode }) {
             </SidebarHeader>
 
             <SidebarBody>
-              <p className="  px-4 mb-6">Twórz magiczne obrazy</p>
+              <p className="px-4 mb-6">Wymarz coś pięknego</p>
               
               <SidebarSection className='pl-4'>
                 <SidebarItem href="/models">
@@ -65,11 +67,15 @@ export function ApplicationLayout({ children }: { children: React.ReactNode }) {
                   <SidebarLabel>Modele</SidebarLabel>
                 </SidebarItem>
                 <SidebarItem href="/twojemodele">
-                  <SparklesIcon className="w-5 h-5" />
+                  <CameraIcon className="w-5 h-5" />
                   <SidebarLabel>Twoje modele</SidebarLabel>
                 </SidebarItem>
+                <SidebarItem href="/galeria">
+                  <PhotoIcon className="w-5 h-5" />
+                  <SidebarLabel>Galeria</SidebarLabel>
+                </SidebarItem>
                 <SidebarItem href="/train">
-                  <Square2StackIcon className="w-5 h-5" />
+                  <RocketLaunchIcon className="w-5 h-5" />
                   <SidebarLabel>Trenuj model</SidebarLabel>
                 </SidebarItem>
               </SidebarSection>
